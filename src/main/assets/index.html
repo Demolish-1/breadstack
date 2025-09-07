@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BreadStack</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { margin:0; padding:20px; font-family:'Helvetica Neue', sans-serif; background:#4B2E2E; color:#fff; display:flex; justify-content:center; align-items:flex-start;}
+        .container { max-width:600px; width:100%; background:#3A1F1F; border-radius:16px; padding:30px; box-shadow:0 8px 20px rgba(0,0,0,0.3);}
+        h1 { text-align:center; margin-bottom:20px; color:#FFB6C1; font-weight:300;}
+        .input-section { display:flex; flex-direction:column; gap:10px; margin-bottom:20px;}
+        input { padding:12px; border-radius:8px; border:none; outline:none; font-size:16px;}
+        button { padding:12px; border:none; border-radius:8px; background:#FFD6A5; color:#4B2E2E; font-weight:bold; cursor:pointer; transition:0.3s;}
+        button:hover { background:#FFADAD;}
+        .results { margin-top:20px; display:flex; flex-direction:column; gap:10px;}
+        .category { background:#582F2F; border-radius:8px; padding:10px;}
+        .category h3 { margin-bottom:5px;}
+        .subcategory { display:flex; justify-content:space-between; padding:5px 10px; border-radius:6px; margin:2px 0;}
+        /* Colors */
+        .power { background:#FFD6A5; color:#4B2E2E;}
+        .food { background:#FFADAD; color:#4B2E2E;}
+        .water { background:#A0C4FF; color:#4B2E2E;}
+        .snacks { background:#BDB2FF; color:#4B2E2E;}
+        .data { background:#FFC6FF; color:#4B2E2E;}
+        .cool { background:#FFEE93; color:#4B2E2E;}
+        .crypto-low { background:#B5E48C; color:#4B2E2E;}
+        .crypto-medium { background:#70C1B3; color:#4B2E2E;}
+        .crypto-high { background:#247BA0; color:#fff;}
+        canvas { margin-top:20px; border-radius:12px; background:#3A1F1F;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>BreadStack</h1>
+    <div class="input-section">
+        <input type="number" id="income" placeholder="Enter income (ZAR)">
+        <button onclick="calculateSplit()">Stack Money</button>
+    </div>
+
+    <div class="results" id="results"></div>
+
+    <canvas id="barChart" width="400" height="150"></canvas>
+    <canvas id="pieChart" width="400" height="150"></canvas>
+</div>
+
+<script>
+    function calculateSplit() {
+      const income = parseFloat(document.getElementById('income').value) || 0;
+
+      const needs = { power: Math.round(income*0.5*0.3), food: Math.round(income*0.5*0.5), water: Math.round(income*0.5*0.2)};
+      const wants = { snacks: Math.round(income*0.3*0.4), data: Math.round(income*0.3*0.35), cool: Math.round(income*0.3*0.25)};
+      const savings = { cryptoLow: Math.round(income*0.2*0.3), cryptoMed: Math.round(income*0.2*0.4), cryptoHigh: Math.round(income*0.2*0.3)};
+
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
+
+      const createCategoryDiv = (name, subs) => {
+        const catDiv = document.createElement('div');
+        catDiv.classList.add('category');
+        catDiv.innerHTML = `<h3>${name}</h3>`;
+        for(const key in subs){
+          const subDiv = document.createElement('div');
+          subDiv.classList.add('subcategory', key.toLowerCase().replace(/([A-Z])/g,"-$1"));
+          subDiv.innerHTML = `<span>${key}</span><span>${subs[key]} ZAR</span>`;
+          catDiv.appendChild(subDiv);
+        }
+        resultsDiv.appendChild(catDiv);
+      }
+
+      createCategoryDiv('Needs', needs);
+      createCategoryDiv('Wants', wants);
+      createCategoryDiv('Savings', savings);
+
+      const barCtx = document.getElementById('barChart').getContext('2d');
+      if(window.barChartInstance) window.barChartInstance.destroy();
+      window.barChartInstance = new Chart(barCtx,{type:'bar',data:{
+        labels:['Needs','Wants','Savings'],
+        datasets:[{label:'Allocation (ZAR)',data:[
+          needs.power+needs.food+needs.water,
+          wants.snacks+wants.data+wants.cool,
+          savings.cryptoLow+savings.cryptoMed+savings.cryptoHigh
+        ],backgroundColor:['#FFD6A5','#BDB2FF','#B5E48C']}]},options:{responsive:true,plugins:{legend:{display:false}}}});
+
+      const pieCtx = document.getElementById('pieChart').getContext('2d');
+      if(window.pieChartInstance) window.pieChartInstance.destroy();
+      window.pieChartInstance = new Chart(pieCtx,{type:'pie',data:{
+        labels:['Power','Food','Water','Snacks','Data','Cool Stuff','Crypto Low','Crypto Med','Crypto High'],
+        datasets:[{data:[
+          needs.power, needs.food, needs.water,
+          wants.snacks, wants.data, wants.cool,
+          savings.cryptoLow, savings.cryptoMed, savings.cryptoHigh
+        ],backgroundColor:[
+          '#FFD6A5','#FFADAD','#A0C4FF',
+          '#BDB2FF','#FFC6FF','#FFEE93',
+          '#B5E48C','#70C1B3','#247BA0'
+        ]}]} , options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+    }
+</script>
+</body>
+</html>
